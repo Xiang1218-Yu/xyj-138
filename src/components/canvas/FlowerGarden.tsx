@@ -688,10 +688,8 @@ export const FlowerGarden: React.FC<FlowerGardenProps> = ({
           const prevThickness = prevPoint?.thickness || 5;
           const newThickness = Math.max(2, prevThickness * 0.98);
 
-          const swayOffset = Math.sin(now * 0.003 + stemPointsRef.current.length * 0.5) * 3;
-
           stemPointsRef.current.push({
-            x: mouseRef.current.x + swayOffset,
+            x: mouseRef.current.x,
             y: mouseRef.current.y,
             thickness: newThickness,
           });
@@ -733,9 +731,23 @@ export const FlowerGarden: React.FC<FlowerGardenProps> = ({
 
   const handleMouseUp = () => {
     if (mouseRef.current.isDown && stemPointsRef.current.length > 2) {
-      const lastPoint = stemPointsRef.current[stemPointsRef.current.length - 1];
+      const endX = mouseRef.current.x;
+      const endY = mouseRef.current.y;
+
+      const lastStoredPoint = stemPointsRef.current[stemPointsRef.current.length - 1];
+      const distToEnd = distance(lastStoredPoint.x, lastStoredPoint.y, endX, endY);
+      if (distToEnd > 2) {
+        const newThickness = Math.max(2, lastStoredPoint.thickness * 0.98);
+        stemPointsRef.current.push({
+          x: endX,
+          y: endY,
+          thickness: newThickness,
+        });
+        stemLeavesRef.current = generateLeaves(stemPointsRef.current);
+      }
+
       const firstPoint = stemPointsRef.current[0];
-      const stemLength = distance(firstPoint.x, firstPoint.y, lastPoint.x, lastPoint.y);
+      const stemLength = distance(firstPoint.x, firstPoint.y, endX, endY);
       const sizeMultiplier = lerp(0.6, 1.4, Math.min(stemLength / 200, 1));
 
       const stemColor = getStemColor(selectedColor);
@@ -750,8 +762,8 @@ export const FlowerGarden: React.FC<FlowerGardenProps> = ({
       addStem(completedStem);
 
       pendingFlowerRef.current = {
-        x: lastPoint.x,
-        y: lastPoint.y,
+        x: endX,
+        y: endY,
         size: flowerSize * sizeMultiplier,
         color: selectedColor,
         delay: 0.15,
@@ -762,8 +774,8 @@ export const FlowerGarden: React.FC<FlowerGardenProps> = ({
         const speed = randomRange(20, 60);
         addParticle({
           id: generateId(),
-          x: lastPoint.x,
-          y: lastPoint.y,
+          x: endX,
+          y: endY,
           vx: Math.cos(angle) * speed,
           vy: Math.sin(angle) * speed - 30,
           size: randomRange(3, 6),

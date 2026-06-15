@@ -79,16 +79,14 @@ export const FlowerGarden: React.FC<FlowerGardenProps> = ({
   }, []);
 
   const createPetal = (
-    cx: number,
-    cy: number,
     angle: number,
     length: number,
     width: number,
     color: string
   ): Petal => {
     return {
-      x: cx,
-      y: cy,
+      x: 0,
+      y: 0,
       angle,
       length,
       width,
@@ -113,8 +111,6 @@ export const FlowerGarden: React.FC<FlowerGardenProps> = ({
 
         petals.push(
           createPetal(
-            x,
-            y,
             angle,
             petalLength * lengthVariation,
             petalWidth * widthVariation,
@@ -148,7 +144,6 @@ export const FlowerGarden: React.FC<FlowerGardenProps> = ({
     globalSway: number
   ) => {
     ctx.save();
-    ctx.translate(petal.x, petal.y);
     ctx.rotate(petal.angle + globalSway);
 
     const easedProgress = easeOutBack(Math.min(bloomProgress, 1));

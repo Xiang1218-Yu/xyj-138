@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { AnimatePresence } from 'framer-motion';
 import Home from '@/pages/Home';
 import Garden from '@/pages/Garden';
+import Fluid from '@/pages/Fluid';
 import Flight from '@/pages/Flight';
 import About from '@/pages/About';
 import NotFound from '@/pages/NotFound';
@@ -28,6 +29,14 @@ const AnimatedRoutes = () => {
           element={
             <PageTransition>
               <Garden />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/fluid"
+          element={
+            <PageTransition>
+              <Fluid />
             </PageTransition>
           }
         />

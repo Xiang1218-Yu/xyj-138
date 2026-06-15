@@ -132,9 +132,26 @@ export const colorPalettes = {
   flight: ['#4facfe', '#00f2fe', '#43e97b', '#38f9d7', '#667eea', '#764ba2'],
   sunset: ['#ff6a00', '#ee0979', '#f83600', '#fe8c00', '#ff4b1f', '#ff9068'],
   ocean: ['#00c6fb', '#005bea', '#667eea', '#764ba2', '#11998e', '#38ef7d'],
+  fluid: ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff', '#5f27cd', '#00d2d3', '#1dd1a1', '#ff9f43', '#ee5a24'],
 };
 
 export const getRandomPaletteColor = (palette: keyof typeof colorPalettes): string => {
   const colors = colorPalettes[palette];
   return colors[Math.floor(Math.random() * colors.length)];
+};
+
+export const mixColors = (color1: RGB, color2: RGB, ratio: number = 0.5): RGB => {
+  return {
+    r: Math.round(color1.r * (1 - ratio) + color2.r * ratio),
+    g: Math.round(color1.g * (1 - ratio) + color2.g * ratio),
+    b: Math.round(color1.b * (1 - ratio) + color2.b * ratio),
+  };
+};
+
+export const rgbToString = (rgb: RGB): string => {
+  return `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+};
+
+export const rgbToRgbaString = (rgb: RGB, alpha: number): string => {
+  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
 };

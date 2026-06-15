@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Flower, Particle, StarParticle, Stem } from '../types/flower';
 import { Aircraft, Cloud, Mountain, ThrustParticle } from '../types/flight';
+import { FluidParticle, FluidState, defaultFluidState } from '../types/fluid';
 
 interface AppState {
   isTransitioning: boolean;
@@ -28,6 +29,8 @@ interface AppState {
     isMouseDown: boolean;
   };
 
+  fluid: FluidState;
+
   setTransitioning: (value: boolean) => void;
   setMousePosition: (x: number, y: number) => void;
   setCursorType: (type: 'default' | 'hover' | 'draw') => void;
@@ -50,6 +53,21 @@ interface AppState {
   setIsMouseDown: (value: boolean) => void;
   addThrustParticle: (particle: ThrustParticle) => void;
   resetFlight: () => void;
+
+  addFluidParticle: (particle: FluidParticle) => void;
+  updateFluidParticle: (id: string, updates: Partial<FluidParticle>) => void;
+  removeFluidParticle: (id: string) => void;
+  clearFluidParticles: () => void;
+  setFluidSelectedColor: (color: string) => void;
+  setFluidViscosity: (value: number) => void;
+  setFluidFlowRate: (value: number) => void;
+  setFluidBrushSize: (value: number) => void;
+  setFluidBlowStrength: (value: number) => void;
+  setFluidTool: (tool: 'pour' | 'blow' | 'mix') => void;
+  setFluidIsPouring: (value: boolean) => void;
+  setFluidIsBlowing: (value: boolean) => void;
+  setFluidBackgroundColor: (color: string) => void;
+  resetFluid: () => void;
 }
 
 const initialAircraft: Aircraft = {
@@ -93,6 +111,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     thrustParticles: [],
     isMouseDown: false,
   },
+
+  fluid: { ...defaultFluidState },
 
   setTransitioning: (value) => set({ isTransitioning: value }),
   setMousePosition: (x, y) => set({ mouseX: x, mouseY: y }),
@@ -229,5 +249,89 @@ export const useAppStore = create<AppState>((set, get) => ({
         aircraft: { ...initialAircraft },
         thrustParticles: [],
       },
+    })),
+
+  addFluidParticle: (particle) =>
+    set((state) => ({
+      fluid: {
+        ...state.fluid,
+        particles: [...state.fluid.particles, particle].slice(-500),
+      },
+    })),
+
+  updateFluidParticle: (id, updates) =>
+    set((state) => ({
+      fluid: {
+        ...state.fluid,
+        particles: state.fluid.particles.map((p) =>
+          p.id === id ? { ...p, ...updates } : p
+        ),
+      },
+    })),
+
+  removeFluidParticle: (id) =>
+    set((state) => ({
+      fluid: {
+        ...state.fluid,
+        particles: state.fluid.particles.filter((p) => p.id !== id),
+      },
+    })),
+
+  clearFluidParticles: () =>
+    set((state) => ({
+      fluid: {
+        ...state.fluid,
+        particles: [],
+      },
+    })),
+
+  setFluidSelectedColor: (color) =>
+    set((state) => ({
+      fluid: { ...state.fluid, selectedColor: color },
+    })),
+
+  setFluidViscosity: (value) =>
+    set((state) => ({
+      fluid: { ...state.fluid, viscosity: value },
+    })),
+
+  setFluidFlowRate: (value) =>
+    set((state) => ({
+      fluid: { ...state.fluid, flowRate: value },
+    })),
+
+  setFluidBrushSize: (value) =>
+    set((state) => ({
+      fluid: { ...state.fluid, brushSize: value },
+    })),
+
+  setFluidBlowStrength: (value) =>
+    set((state) => ({
+      fluid: { ...state.fluid, blowStrength: value },
+    })),
+
+  setFluidTool: (tool) =>
+    set((state) => ({
+      fluid: { ...state.fluid, tool },
+    })),
+
+  setFluidIsPouring: (value) =>
+    set((state) => ({
+      fluid: { ...state.fluid, isPouring: value },
+    })),
+
+  setFluidIsBlowing: (value) =>
+    set((state) => ({
+      fluid: { ...state.fluid, isBlowing: value },
+    })),
+
+  setFluidBackgroundColor: (color) =>
+    set((state) => ({
+      fluid: { ...state.fluid, backgroundColor: color },
+    })),
+
+  resetFluid: () =>
+    set(() => ({
+      fluid: { ...defaultFluidState },
     })),
 }));

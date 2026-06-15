@@ -7,6 +7,7 @@ interface ColorPickerProps {
   onChange: (color: string) => void;
   className?: string;
   palette?: keyof typeof colorPalettes;
+  label?: string;
 }
 
 export const ColorPicker: React.FC<ColorPickerProps> = ({
@@ -14,12 +15,16 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   onChange,
   className = '',
   palette = 'garden',
+  label,
 }) => {
   const colors = colorPalettes[palette];
+  
+  const defaultLabel = palette === 'fluid' ? '颜料颜色' : '花朵颜色';
+  const displayLabel = label ?? defaultLabel;
 
   return (
     <div className={cn('space-y-2', className)}>
-      <span className="text-white/70 text-sm">花朵颜色</span>
+      <span className="text-white/70 text-sm">{displayLabel}</span>
       <div className="flex gap-2 flex-wrap">
         {colors.map((color) => (
           <button

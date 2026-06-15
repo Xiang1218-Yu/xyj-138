@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Flower, Particle, StarParticle } from '../types/flower';
+import { Flower, Particle, StarParticle, Stem } from '../types/flower';
 import { Aircraft, Cloud, Mountain, ThrustParticle } from '../types/flight';
 
 interface AppState {
@@ -12,6 +12,8 @@ interface AppState {
     flowers: Flower[];
     particles: Particle[];
     stars: StarParticle[];
+    stems: Stem[];
+    currentStem: Stem | null;
     selectedColor: string;
     flowerSize: number;
     isDrawing: boolean;
@@ -38,6 +40,11 @@ interface AppState {
   setFlowerSize: (size: number) => void;
   setIsDrawing: (value: boolean) => void;
   updateFlower: (id: string, updates: Partial<Flower>) => void;
+  setCurrentStem: (stem: Stem | null) => void;
+  updateCurrentStem: (updates: Partial<Stem>) => void;
+  addStem: (stem: Stem) => void;
+  updateStem: (id: string, updates: Partial<Stem>) => void;
+  clearStems: () => void;
 
   updateAircraft: (updates: Partial<Aircraft>) => void;
   setIsMouseDown: (value: boolean) => void;
@@ -71,6 +78,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     flowers: [],
     particles: [],
     stars: [],
+    stems: [],
+    currentStem: null,
     selectedColor: '#667eea',
     flowerSize: 60,
     isDrawing: false,
@@ -112,6 +121,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         ...state.garden,
         flowers: [],
         particles: [],
+        stems: [],
+        currentStem: null,
       },
     })),
 
@@ -145,6 +156,48 @@ export const useAppStore = create<AppState>((set, get) => ({
         flowers: state.garden.flowers.map((f) =>
           f.id === id ? { ...f, ...updates } : f
         ),
+      },
+    })),
+
+  setCurrentStem: (stem) =>
+    set((state) => ({
+      garden: { ...state.garden, currentStem: stem },
+    })),
+
+  updateCurrentStem: (updates) =>
+    set((state) => ({
+      garden: {
+        ...state.garden,
+        currentStem: state.garden.currentStem
+          ? { ...state.garden.currentStem, ...updates }
+          : null,
+      },
+    })),
+
+  addStem: (stem) =>
+    set((state) => ({
+      garden: {
+        ...state.garden,
+        stems: [...state.garden.stems, stem],
+      },
+    })),
+
+  updateStem: (id, updates) =>
+    set((state) => ({
+      garden: {
+        ...state.garden,
+        stems: state.garden.stems.map((s) =>
+          s.id === id ? { ...s, ...updates } : s
+        ),
+      },
+    })),
+
+  clearStems: () =>
+    set((state) => ({
+      garden: {
+        ...state.garden,
+        stems: [],
+        currentStem: null,
       },
     })),
 

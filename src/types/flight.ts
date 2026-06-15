@@ -22,6 +22,7 @@ export interface Cloud {
   speed: number;
   opacity: number;
   puffCount: number;
+  layer: number;
 }
 
 export interface Mountain {

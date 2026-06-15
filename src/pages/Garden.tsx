@@ -70,10 +70,10 @@ const Garden: React.FC = () => {
               <p>
                 <span className="text-white font-medium">操作提示：</span>
               </p>
-              <p>• 按住鼠标左键并拖动</p>
-              <p>• 移动速度越快，花朵越大</p>
-              <p>• 松开鼠标会有惊喜效果</p>
-              <p>• 可选择不同颜色</p>
+              <p>• 按住鼠标并拖动生成花茎</p>
+              <p>• 花茎越长，花朵越大</p>
+              <p>• 松开鼠标在终点绽放花朵</p>
+              <p>• 可选择不同花朵颜色</p>
             </div>
           </div>
         </GlassCard>

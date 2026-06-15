@@ -50,12 +50,38 @@ export interface StarParticle {
   twinklePhase: number;
 }
 
+export interface StemPoint {
+  x: number;
+  y: number;
+  thickness: number;
+}
+
+export interface Leaf {
+  x: number;
+  y: number;
+  angle: number;
+  size: number;
+  side: 'left' | 'right';
+  growProgress: number;
+}
+
+export interface Stem {
+  id: string;
+  points: StemPoint[];
+  color: string;
+  leaves: Leaf[];
+  growProgress: number;
+  targetGrowProgress: number;
+}
+
 export interface GardenState {
   flowers: Flower[];
   particles: Particle[];
   stars: StarParticle[];
+  stems: Stem[];
   selectedColor: string;
   flowerSize: number;
   isDrawing: boolean;
   lastMousePos: { x: number; y: number };
+  currentStem: Stem | null;
 }

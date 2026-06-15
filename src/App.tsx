@@ -63,7 +63,7 @@ const AnimatedRoutes = () => {
 export default function App() {
   return (
     <Router>
-      <div className="w-full h-full relative overflow-hidden">
+      <div className="w-full min-h-screen relative">
         <CustomCursor />
         <Navbar />
         <AnimatedRoutes />

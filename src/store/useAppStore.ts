@@ -11,6 +11,13 @@ import {
   ColorMode,
   GradientColor,
 } from '../types/kaleidoscope';
+import {
+  FireworksState,
+  defaultFireworksState,
+  FireworkRocket,
+  FireworkParticle,
+  FireworkType,
+} from '../types/fireworks';
 
 interface AppState {
   isTransitioning: boolean;
@@ -41,6 +48,7 @@ interface AppState {
   fluid: FluidState;
 
   kaleidoscope: KaleidoscopeState;
+  fireworks: FireworksState;
 
   setTransitioning: (value: boolean) => void;
   setMousePosition: (x: number, y: number) => void;
@@ -101,6 +109,31 @@ interface AppState {
   setKaleidoscopeAnimateRotation: (animate: boolean) => void;
   setKaleidoscopeRotationSpeed: (speed: number) => void;
   resetKaleidoscope: () => void;
+
+  addFireworkRocket: (rocket: FireworkRocket) => void;
+  removeFireworkRocket: (id: string) => void;
+  clearFireworkRockets: () => void;
+  updateFireworkRocket: (id: string, updates: Partial<FireworkRocket>) => void;
+  addFireworkParticle: (particle: FireworkParticle) => void;
+  removeFireworkParticle: (id: string) => void;
+  clearFireworkParticles: () => void;
+  updateFireworkParticle: (id: string, updates: Partial<FireworkParticle>) => void;
+  setFireworkType: (type: FireworkType) => void;
+  setFireworkColor: (color: string) => void;
+  setFireworkColorMode: (mode: 'solid' | 'gradient' | 'rainbow') => void;
+  setFireworkGradientColors: (colors: GradientColor) => void;
+  setFireworkAutoLaunch: (value: boolean) => void;
+  setFireworkAutoLaunchInterval: (interval: number) => void;
+  setFireworkLaunchPower: (power: number) => void;
+  setFireworkParticleCount: (count: number) => void;
+  setFireworkGravity: (gravity: number) => void;
+  setFireworkIsDragging: (value: boolean) => void;
+  setFireworkDragStart: (x: number, y: number) => void;
+  setFireworkDragCurrent: (x: number, y: number) => void;
+  setFireworkShowLaunchPreview: (value: boolean) => void;
+  setFireworkBackgroundStars: (stars: { x: number; y: number; size: number; opacity: number; twinkleSpeed: number }[]) => void;
+  clearAllFireworks: () => void;
+  resetFireworks: () => void;
 }
 
 const initialAircraft: Aircraft = {
@@ -148,6 +181,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   fluid: { ...defaultFluidState },
 
   kaleidoscope: { ...defaultKaleidoscopeState },
+  fireworks: { ...defaultFireworksState },
 
   setTransitioning: (value) => set({ isTransitioning: value }),
   setMousePosition: (x, y) => set({ mouseX: x, mouseY: y }),
@@ -500,5 +534,157 @@ export const useAppStore = create<AppState>((set, get) => ({
   resetKaleidoscope: () =>
     set(() => ({
       kaleidoscope: { ...defaultKaleidoscopeState },
+    })),
+
+  addFireworkRocket: (rocket) =>
+    set((state) => ({
+      fireworks: {
+        ...state.fireworks,
+        rockets: [...state.fireworks.rockets, rocket],
+      },
+    })),
+
+  removeFireworkRocket: (id) =>
+    set((state) => ({
+      fireworks: {
+        ...state.fireworks,
+        rockets: state.fireworks.rockets.filter((r) => r.id !== id),
+      },
+    })),
+
+  clearFireworkRockets: () =>
+    set((state) => ({
+      fireworks: {
+        ...state.fireworks,
+        rockets: [],
+      },
+    })),
+
+  updateFireworkRocket: (id, updates) =>
+    set((state) => ({
+      fireworks: {
+        ...state.fireworks,
+        rockets: state.fireworks.rockets.map((r) =>
+          r.id === id ? { ...r, ...updates } : r
+        ),
+      },
+    })),
+
+  addFireworkParticle: (particle) =>
+    set((state) => ({
+      fireworks: {
+        ...state.fireworks,
+        particles: [...state.fireworks.particles, particle].slice(-2000),
+      },
+    })),
+
+  removeFireworkParticle: (id) =>
+    set((state) => ({
+      fireworks: {
+        ...state.fireworks,
+        particles: state.fireworks.particles.filter((p) => p.id !== id),
+      },
+    })),
+
+  clearFireworkParticles: () =>
+    set((state) => ({
+      fireworks: {
+        ...state.fireworks,
+        particles: [],
+      },
+    })),
+
+  updateFireworkParticle: (id, updates) =>
+    set((state) => ({
+      fireworks: {
+        ...state.fireworks,
+        particles: state.fireworks.particles.map((p) =>
+          p.id === id ? { ...p, ...updates } : p
+        ),
+      },
+    })),
+
+  setFireworkType: (type) =>
+    set((state) => ({
+      fireworks: { ...state.fireworks, fireworkType: type },
+    })),
+
+  setFireworkColor: (color) =>
+    set((state) => ({
+      fireworks: { ...state.fireworks, fireworkColor: color },
+    })),
+
+  setFireworkColorMode: (mode) =>
+    set((state) => ({
+      fireworks: { ...state.fireworks, colorMode: mode },
+    })),
+
+  setFireworkGradientColors: (colors) =>
+    set((state) => ({
+      fireworks: { ...state.fireworks, gradientColors: colors },
+    })),
+
+  setFireworkAutoLaunch: (value) =>
+    set((state) => ({
+      fireworks: { ...state.fireworks, autoLaunch: value },
+    })),
+
+  setFireworkAutoLaunchInterval: (interval) =>
+    set((state) => ({
+      fireworks: { ...state.fireworks, autoLaunchInterval: interval },
+    })),
+
+  setFireworkLaunchPower: (power) =>
+    set((state) => ({
+      fireworks: { ...state.fireworks, launchPower: power },
+    })),
+
+  setFireworkParticleCount: (count) =>
+    set((state) => ({
+      fireworks: { ...state.fireworks, particleCount: count },
+    })),
+
+  setFireworkGravity: (gravity) =>
+    set((state) => ({
+      fireworks: { ...state.fireworks, gravity },
+    })),
+
+  setFireworkIsDragging: (value) =>
+    set((state) => ({
+      fireworks: { ...state.fireworks, isDragging: value },
+    })),
+
+  setFireworkDragStart: (x, y) =>
+    set((state) => ({
+      fireworks: { ...state.fireworks, dragStartX: x, dragStartY: y },
+    })),
+
+  setFireworkDragCurrent: (x, y) =>
+    set((state) => ({
+      fireworks: { ...state.fireworks, dragCurrentX: x, dragCurrentY: y },
+    })),
+
+  setFireworkShowLaunchPreview: (value) =>
+    set((state) => ({
+      fireworks: { ...state.fireworks, showLaunchPreview: value },
+    })),
+
+  setFireworkBackgroundStars: (stars) =>
+    set((state) => ({
+      fireworks: { ...state.fireworks, backgroundStars: stars },
+    })),
+
+  clearAllFireworks: () =>
+    set((state) => ({
+      fireworks: {
+        ...state.fireworks,
+        rockets: [],
+        particles: [],
+      },
+    })),
+
+  resetFireworks: () =>
+    set(() => ({
+      fireworks: { ...defaultFireworksState },
     })),
 }));

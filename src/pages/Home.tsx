@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Flower2, Plane, Palette, Sparkles, ArrowRight } from 'lucide-react';
+import { Flower2, Plane, Palette, Sparkles, ArrowRight, Flame } from 'lucide-react';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
 import { useAppStore } from '@/store/useAppStore';
@@ -158,6 +158,14 @@ const Home: React.FC = () => {
       glow: 'rgba(102, 126, 234, 0.4)',
     },
     {
+      title: '绚烂烟花',
+      description: '拖拽瞄准发射烟花，9种图案绽放夜空，开启自动模式欣赏烟花秀',
+      icon: Flame,
+      path: '/fireworks',
+      gradient: 'from-orange-500 to-rose-500',
+      glow: 'rgba(255, 107, 107, 0.4)',
+    },
+    {
       title: '流体画创作',
       description: '倾倒、吹气、混合多种虚拟颜料，创造独特的流体艺术作品',
       icon: Palette,
@@ -223,7 +231,7 @@ const Home: React.FC = () => {
         </p>
 
         <div
-          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl w-full transition-all duration-1000 delay-500 ease-out ${
+          className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 max-w-7xl w-full transition-all duration-1000 delay-500 ease-out ${
             cardsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
           }`}
         >

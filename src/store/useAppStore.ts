@@ -2,6 +2,15 @@ import { create } from 'zustand';
 import { Flower, Particle, StarParticle, Stem } from '../types/flower';
 import { Aircraft, Cloud, Mountain, ThrustParticle } from '../types/flight';
 import { FluidParticle, FluidState, defaultFluidState } from '../types/fluid';
+import {
+  KaleidoscopeState,
+  defaultKaleidoscopeState,
+  KaleidoscopeStroke,
+  Point,
+  SymmetryMode,
+  ColorMode,
+  GradientColor,
+} from '../types/kaleidoscope';
 
 interface AppState {
   isTransitioning: boolean;
@@ -30,6 +39,8 @@ interface AppState {
   };
 
   fluid: FluidState;
+
+  kaleidoscope: KaleidoscopeState;
 
   setTransitioning: (value: boolean) => void;
   setMousePosition: (x: number, y: number) => void;
@@ -68,6 +79,28 @@ interface AppState {
   setFluidIsBlowing: (value: boolean) => void;
   setFluidBackgroundColor: (color: string) => void;
   resetFluid: () => void;
+
+  addKaleidoscopeStroke: (stroke: KaleidoscopeStroke) => void;
+  setKaleidoscopeCurrentStroke: (stroke: KaleidoscopeStroke | null) => void;
+  updateKaleidoscopeCurrentStroke: (updates: Partial<KaleidoscopeStroke>) => void;
+  addPointToCurrentStroke: (point: Point) => void;
+  clearKaleidoscopeStrokes: () => void;
+  undoKaleidoscopeStroke: () => void;
+  setKaleidoscopeSymmetryAxes: (count: number) => void;
+  setKaleidoscopeSymmetryMode: (mode: SymmetryMode) => void;
+  setKaleidoscopeBrushSize: (size: number) => void;
+  setKaleidoscopeStrokeColor: (color: string) => void;
+  setKaleidoscopeStrokeColorMode: (mode: ColorMode) => void;
+  setKaleidoscopeStrokeGradientColors: (colors: GradientColor) => void;
+  setKaleidoscopeBackgroundColor: (color: string) => void;
+  setKaleidoscopeBackgroundColorMode: (mode: ColorMode) => void;
+  setKaleidoscopeBackgroundGradientColors: (colors: GradientColor) => void;
+  setKaleidoscopeShowGuides: (show: boolean) => void;
+  setKaleidoscopeIsDrawing: (value: boolean) => void;
+  setKaleidoscopeRotation: (rotation: number) => void;
+  setKaleidoscopeAnimateRotation: (animate: boolean) => void;
+  setKaleidoscopeRotationSpeed: (speed: number) => void;
+  resetKaleidoscope: () => void;
 }
 
 const initialAircraft: Aircraft = {
@@ -113,6 +146,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   fluid: { ...defaultFluidState },
+
+  kaleidoscope: { ...defaultKaleidoscopeState },
 
   setTransitioning: (value) => set({ isTransitioning: value }),
   setMousePosition: (x, y) => set({ mouseX: x, mouseY: y }),
@@ -333,5 +368,137 @@ export const useAppStore = create<AppState>((set, get) => ({
   resetFluid: () =>
     set(() => ({
       fluid: { ...defaultFluidState },
+    })),
+
+  addKaleidoscopeStroke: (stroke) =>
+    set((state) => ({
+      kaleidoscope: {
+        ...state.kaleidoscope,
+        strokes: [...state.kaleidoscope.strokes, stroke],
+        currentStroke: null,
+      },
+    })),
+
+  setKaleidoscopeCurrentStroke: (stroke) =>
+    set((state) => ({
+      kaleidoscope: {
+        ...state.kaleidoscope,
+        currentStroke: stroke,
+      },
+    })),
+
+  updateKaleidoscopeCurrentStroke: (updates) =>
+    set((state) => ({
+      kaleidoscope: {
+        ...state.kaleidoscope,
+        currentStroke: state.kaleidoscope.currentStroke
+          ? { ...state.kaleidoscope.currentStroke, ...updates }
+          : null,
+      },
+    })),
+
+  addPointToCurrentStroke: (point) =>
+    set((state) => ({
+      kaleidoscope: {
+        ...state.kaleidoscope,
+        currentStroke: state.kaleidoscope.currentStroke
+          ? {
+              ...state.kaleidoscope.currentStroke,
+              points: [...state.kaleidoscope.currentStroke.points, point],
+            }
+          : null,
+      },
+    })),
+
+  clearKaleidoscopeStrokes: () =>
+    set((state) => ({
+      kaleidoscope: {
+        ...state.kaleidoscope,
+        strokes: [],
+        currentStroke: null,
+      },
+    })),
+
+  undoKaleidoscopeStroke: () =>
+    set((state) => ({
+      kaleidoscope: {
+        ...state.kaleidoscope,
+        strokes: state.kaleidoscope.strokes.slice(0, -1),
+      },
+    })),
+
+  setKaleidoscopeSymmetryAxes: (count) =>
+    set((state) => ({
+      kaleidoscope: { ...state.kaleidoscope, symmetryAxes: count },
+    })),
+
+  setKaleidoscopeSymmetryMode: (mode) =>
+    set((state) => ({
+      kaleidoscope: { ...state.kaleidoscope, symmetryMode: mode },
+    })),
+
+  setKaleidoscopeBrushSize: (size) =>
+    set((state) => ({
+      kaleidoscope: { ...state.kaleidoscope, brushSize: size },
+    })),
+
+  setKaleidoscopeStrokeColor: (color) =>
+    set((state) => ({
+      kaleidoscope: { ...state.kaleidoscope, strokeColor: color },
+    })),
+
+  setKaleidoscopeStrokeColorMode: (mode) =>
+    set((state) => ({
+      kaleidoscope: { ...state.kaleidoscope, strokeColorMode: mode },
+    })),
+
+  setKaleidoscopeStrokeGradientColors: (colors) =>
+    set((state) => ({
+      kaleidoscope: { ...state.kaleidoscope, strokeGradientColors: colors },
+    })),
+
+  setKaleidoscopeBackgroundColor: (color) =>
+    set((state) => ({
+      kaleidoscope: { ...state.kaleidoscope, backgroundColor: color },
+    })),
+
+  setKaleidoscopeBackgroundColorMode: (mode) =>
+    set((state) => ({
+      kaleidoscope: { ...state.kaleidoscope, backgroundColorMode: mode },
+    })),
+
+  setKaleidoscopeBackgroundGradientColors: (colors) =>
+    set((state) => ({
+      kaleidoscope: { ...state.kaleidoscope, backgroundGradientColors: colors },
+    })),
+
+  setKaleidoscopeShowGuides: (show) =>
+    set((state) => ({
+      kaleidoscope: { ...state.kaleidoscope, showGuides: show },
+    })),
+
+  setKaleidoscopeIsDrawing: (value) =>
+    set((state) => ({
+      kaleidoscope: { ...state.kaleidoscope, isDrawing: value },
+    })),
+
+  setKaleidoscopeRotation: (rotation) =>
+    set((state) => ({
+      kaleidoscope: { ...state.kaleidoscope, rotation },
+    })),
+
+  setKaleidoscopeAnimateRotation: (animate) =>
+    set((state) => ({
+      kaleidoscope: { ...state.kaleidoscope, animateRotation: animate },
+    })),
+
+  setKaleidoscopeRotationSpeed: (speed) =>
+    set((state) => ({
+      kaleidoscope: { ...state.kaleidoscope, rotationSpeed: speed },
+    })),
+
+  resetKaleidoscope: () =>
+    set(() => ({
+      kaleidoscope: { ...defaultKaleidoscopeState },
     })),
 }));

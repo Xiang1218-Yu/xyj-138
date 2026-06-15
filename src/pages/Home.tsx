@@ -166,6 +166,14 @@ const Home: React.FC = () => {
       glow: 'rgba(0, 210, 211, 0.4)',
     },
     {
+      title: '几何万花筒',
+      description: '绘制线条自动镜像复制，创造绚丽多彩的万花筒图案',
+      icon: Sparkles,
+      path: '/kaleidoscope',
+      gradient: 'from-fuchsia-500 to-orange-500',
+      glow: 'rgba(232, 121, 249, 0.4)',
+    },
+    {
       title: '飞行器驾驶',
       description: '移动鼠标控制方向，按住加速，在云海中自由翱翔',
       icon: Plane,
@@ -215,7 +223,7 @@ const Home: React.FC = () => {
         </p>
 
         <div
-          className={`grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl w-full transition-all duration-1000 delay-500 ease-out ${
+          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl w-full transition-all duration-1000 delay-500 ease-out ${
             cardsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
           }`}
         >

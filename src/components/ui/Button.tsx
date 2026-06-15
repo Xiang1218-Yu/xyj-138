@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'ghost' | 'gradient';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'gradient' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
@@ -27,6 +27,8 @@ export const Button: React.FC<ButtonProps> = ({
       'bg-transparent hover:bg-white/10 text-white/80 hover:text-white border-0',
     gradient:
       'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-lg hover:shadow-purple-500/40 hover:scale-105',
+    danger:
+      'bg-red-500/20 hover:bg-red-500/30 text-white border border-red-500/40 hover:border-red-400/60 hover:shadow-lg hover:shadow-red-500/20',
   };
 
   const sizes = {

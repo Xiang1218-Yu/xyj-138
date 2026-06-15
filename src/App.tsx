@@ -4,6 +4,7 @@ import Home from '@/pages/Home';
 import Garden from '@/pages/Garden';
 import Fluid from '@/pages/Fluid';
 import Flight from '@/pages/Flight';
+import Kaleidoscope from '@/pages/Kaleidoscope';
 import About from '@/pages/About';
 import NotFound from '@/pages/NotFound';
 import { Navbar } from '@/components/layout/Navbar';
@@ -45,6 +46,14 @@ const AnimatedRoutes = () => {
           element={
             <PageTransition>
               <Flight />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/kaleidoscope"
+          element={
+            <PageTransition>
+              <Kaleidoscope />
             </PageTransition>
           }
         />

@@ -18,6 +18,14 @@ import {
   FireworkParticle,
   FireworkType,
 } from '../types/fireworks';
+import {
+  PinballState,
+  defaultPinballState,
+  Ball,
+  ExplosionParticle,
+  CelebrationParticle,
+  CurvedBoard,
+} from '../types/pinball';
 
 interface AppState {
   isTransitioning: boolean;
@@ -49,6 +57,7 @@ interface AppState {
 
   kaleidoscope: KaleidoscopeState;
   fireworks: FireworksState;
+  pinball: PinballState;
 
   setTransitioning: (value: boolean) => void;
   setMousePosition: (x: number, y: number) => void;
@@ -134,6 +143,25 @@ interface AppState {
   setFireworkBackgroundStars: (stars: { x: number; y: number; size: number; opacity: number; twinkleSpeed: number }[]) => void;
   clearAllFireworks: () => void;
   resetFireworks: () => void;
+
+  addPinballBall: (ball: Ball) => void;
+  removePinballBall: (id: string) => void;
+  updatePinballBall: (id: string, updates: Partial<Ball>) => void;
+  setActivePinball: (ball: Ball | null) => void;
+  updateCurvedBoard: (updates: Partial<CurvedBoard>) => void;
+  addExplosionParticle: (particle: ExplosionParticle) => void;
+  removeExplosionParticle: (id: string) => void;
+  updateExplosionParticle: (id: string, updates: Partial<ExplosionParticle>) => void;
+  addCelebrationParticle: (particle: CelebrationParticle) => void;
+  removeCelebrationParticle: (id: string) => void;
+  updateCelebrationParticle: (id: string, updates: Partial<CelebrationParticle>) => void;
+  setPinballScore: (score: number) => void;
+  setPinballCelebrating: (value: boolean) => void;
+  setPinballCelebrationTimer: (value: number) => void;
+  updateLauncher: (updates: Partial<PinballState['launcher']>) => void;
+  clearPinballBalls: () => void;
+  clearPinballParticles: () => void;
+  resetPinball: () => void;
 }
 
 const initialAircraft: Aircraft = {
@@ -152,7 +180,7 @@ const initialAircraft: Aircraft = {
   isThrusting: false,
 };
 
-export const useAppStore = create<AppState>((set, get) => ({
+export const useAppStore = create<AppState>((set) => ({
   isTransitioning: false,
   mouseX: 0,
   mouseY: 0,
@@ -182,6 +210,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   kaleidoscope: { ...defaultKaleidoscopeState },
   fireworks: { ...defaultFireworksState },
+  pinball: { ...defaultPinballState },
 
   setTransitioning: (value) => set({ isTransitioning: value }),
   setMousePosition: (x, y) => set({ mouseX: x, mouseY: y }),
@@ -686,5 +715,143 @@ export const useAppStore = create<AppState>((set, get) => ({
   resetFireworks: () =>
     set(() => ({
       fireworks: { ...defaultFireworksState },
+    })),
+
+  addPinballBall: (ball) =>
+    set((state) => ({
+      pinball: { ...state.pinball, balls: [...state.pinball.balls, ball] },
+    })),
+
+  removePinballBall: (id) =>
+    set((state) => ({
+      pinball: {
+        ...state.pinball,
+        balls: state.pinball.balls.filter((b) => b.id !== id),
+      },
+    })),
+
+  updatePinballBall: (id, updates) =>
+    set((state) => ({
+      pinball: {
+        ...state.pinball,
+        balls: state.pinball.balls.map((b) =>
+          b.id === id ? { ...b, ...updates } : b
+        ),
+        activeBall:
+          state.pinball.activeBall?.id === id
+            ? { ...state.pinball.activeBall, ...updates }
+            : state.pinball.activeBall,
+      },
+    })),
+
+  setActivePinball: (ball) =>
+    set((state) => ({
+      pinball: { ...state.pinball, activeBall: ball },
+    })),
+
+  updateCurvedBoard: (updates) =>
+    set((state) => ({
+      pinball: {
+        ...state.pinball,
+        curvedBoard: { ...state.pinball.curvedBoard, ...updates },
+      },
+    })),
+
+  addExplosionParticle: (particle) =>
+    set((state) => ({
+      pinball: {
+        ...state.pinball,
+        explosionParticles: [...state.pinball.explosionParticles, particle].slice(-200),
+      },
+    })),
+
+  removeExplosionParticle: (id) =>
+    set((state) => ({
+      pinball: {
+        ...state.pinball,
+        explosionParticles: state.pinball.explosionParticles.filter(
+          (p) => p.id !== id
+        ),
+      },
+    })),
+
+  updateExplosionParticle: (id, updates) =>
+    set((state) => ({
+      pinball: {
+        ...state.pinball,
+        explosionParticles: state.pinball.explosionParticles.map((p) =>
+          p.id === id ? { ...p, ...updates } : p
+        ),
+      },
+    })),
+
+  addCelebrationParticle: (particle) =>
+    set((state) => ({
+      pinball: {
+        ...state.pinball,
+        celebrationParticles: [...state.pinball.celebrationParticles, particle].slice(-300),
+      },
+    })),
+
+  removeCelebrationParticle: (id) =>
+    set((state) => ({
+      pinball: {
+        ...state.pinball,
+        celebrationParticles: state.pinball.celebrationParticles.filter(
+          (p) => p.id !== id
+        ),
+      },
+    })),
+
+  updateCelebrationParticle: (id, updates) =>
+    set((state) => ({
+      pinball: {
+        ...state.pinball,
+        celebrationParticles: state.pinball.celebrationParticles.map((p) =>
+          p.id === id ? { ...p, ...updates } : p
+        ),
+      },
+    })),
+
+  setPinballScore: (score) =>
+    set((state) => ({
+      pinball: { ...state.pinball, score },
+    })),
+
+  setPinballCelebrating: (value) =>
+    set((state) => ({
+      pinball: { ...state.pinball, isCelebrating: value },
+    })),
+
+  setPinballCelebrationTimer: (value) =>
+    set((state) => ({
+      pinball: { ...state.pinball, celebrationTimer: value },
+    })),
+
+  updateLauncher: (updates) =>
+    set((state) => ({
+      pinball: {
+        ...state.pinball,
+        launcher: { ...state.pinball.launcher, ...updates },
+      },
+    })),
+
+  clearPinballBalls: () =>
+    set((state) => ({
+      pinball: { ...state.pinball, balls: [], activeBall: null },
+    })),
+
+  clearPinballParticles: () =>
+    set((state) => ({
+      pinball: {
+        ...state.pinball,
+        explosionParticles: [],
+        celebrationParticles: [],
+      },
+    })),
+
+  resetPinball: () =>
+    set(() => ({
+      pinball: { ...defaultPinballState },
     })),
 }));

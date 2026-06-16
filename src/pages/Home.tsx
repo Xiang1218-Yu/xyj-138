@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Flower2, Plane, Palette, Sparkles, ArrowRight, Flame } from 'lucide-react';
+import { Flower2, Plane, Palette, Sparkles, ArrowRight, Flame, CircleDot } from 'lucide-react';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
 import { useAppStore } from '@/store/useAppStore';
-import { randomRange, lerp } from '@/utils/math';
+import { randomRange } from '@/utils/math';
 import { withAlpha } from '@/utils/colors';
 
 interface FloatingParticle {
@@ -189,6 +189,14 @@ const Home: React.FC = () => {
       gradient: 'from-blue-500 to-indigo-500',
       glow: 'rgba(79, 172, 254, 0.4)',
     },
+    {
+      title: '3D弹射跳球',
+      description: '按住蓄力弹射小球，转动弧形木板调整方向，将球打入洞中得分',
+      icon: CircleDot,
+      path: '/pinball',
+      gradient: 'from-orange-500 to-red-500',
+      glow: 'rgba(255, 107, 107, 0.4)',
+    },
   ];
 
   return (
@@ -231,11 +239,11 @@ const Home: React.FC = () => {
         </p>
 
         <div
-          className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 max-w-7xl w-full transition-all duration-1000 delay-500 ease-out ${
+          className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 max-w-7xl w-full transition-all duration-1000 delay-500 ease-out ${
             cardsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
           }`}
         >
-          {experiences.map((exp, index) => (
+          {experiences.map((exp) => (
             <Link
               key={exp.path}
               to={exp.path}

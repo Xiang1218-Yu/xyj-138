@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Flower2, Plane, Info, Menu, X, Palette, Sparkles, Flame } from 'lucide-react';
+import { Home, Flower2, Plane, Info, Menu, X, Palette, Sparkles, Flame, CircleDot } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const Navbar: React.FC = () => {
@@ -12,6 +12,7 @@ export const Navbar: React.FC = () => {
     { path: '/fluid', label: '流体画', icon: Palette },
     { path: '/kaleidoscope', label: '万花筒', icon: Sparkles },
     { path: '/fireworks', label: '烟花秀', icon: Flame },
+    { path: '/pinball', label: '弹射跳球', icon: CircleDot },
     { path: '/flight', label: '飞行器', icon: Plane },
     { path: '/about', label: '关于', icon: Info },
   ];

@@ -80,38 +80,38 @@ export const PinballGame: React.FC<PinballGameProps> = ({
   );
 
   const initializeScene = useCallback(
-    (w: number, h: number) => {
-      if (initializedRef.current) return;
+    (w: number, h: number, force = false) => {
+      if (initializedRef.current && !force) return;
       initializedRef.current = true;
 
       sceneRef.current.curvedBoard = {
-        x: w * 0.5,
-        y: h * 0.55,
+        x: w * 0.42,
+        y: h * 0.62,
         angle: 0,
         targetAngle: 0,
-        width: 220,
-        height: 35,
-        curveRadius: 160,
+        width: 200,
+        height: 200,
+        curveRadius: 100,
       };
 
       sceneRef.current.bridge = {
-        x: w * 0.75,
-        y: h * 0.4,
-        width: 280,
-        height: 25,
-        z: 50,
+        x: w * 0.65,
+        y: h * 0.5,
+        width: 340,
+        height: 30,
+        z: 30,
       };
 
       sceneRef.current.hole = {
-        x: w * 0.82,
-        y: h * 0.38,
-        radius: 35,
-        z: 60,
+        x: w * 0.88,
+        y: h * 0.47,
+        radius: 50,
+        z: 70,
       };
 
       sceneRef.current.launcher = {
-        x: w * 0.15,
-        y: h * 0.7,
+        x: w * 0.12,
+        y: h * 0.75,
         width: 70,
         height: 140,
         power: 0,
@@ -131,6 +131,15 @@ export const PinballGame: React.FC<PinballGameProps> = ({
       initializeScene(width, height);
     }
   }, [width, height, initializeScene]);
+
+  const prevScoreRef = useRef(score);
+  useEffect(() => {
+    if (prevScoreRef.current > 0 && score === 0 && width > 0 && height > 0) {
+      initializedRef.current = false;
+      initializeScene(width, height, true);
+    }
+    prevScoreRef.current = score;
+  }, [score, width, height, initializeScene]);
 
   useEffect(() => {
     sceneRef.current.balls = balls;
@@ -192,7 +201,8 @@ export const PinballGame: React.FC<PinballGameProps> = ({
 
   const launchBall = useCallback(() => {
     const scene = sceneRef.current;
-    const launchPower = scene.launcher.chargeProgress * 15 + 5;
+    const power = scene.launcher.chargeProgress / 100;
+    const launchPower = power * 500 + 200;
 
     if (scene.balls.length > 0) {
       scene.balls.forEach((ball) => {
@@ -213,9 +223,9 @@ export const PinballGame: React.FC<PinballGameProps> = ({
       x: scene.launcher.x,
       y: scene.launcher.y - 60,
       z: 0,
-      vx: launchPower * 0.8,
-      vy: -launchPower * 0.6,
-      vz: launchPower * 0.3,
+      vx: launchPower * 0.65,
+      vy: -launchPower * 0.5,
+      vz: launchPower * 0.25,
       radius: 22,
       color: '#ff6b6b',
       isActive: true,
@@ -229,47 +239,82 @@ export const PinballGame: React.FC<PinballGameProps> = ({
   }, [addPinballBall, setActivePinball, createExplosion, removePinballBall, project3D, width, height]);
 
   const checkCollisionWithCurvedBoard = useCallback((ball: Ball, board: typeof curvedBoard): Ball => {
-    const boardLeft = board.x - board.width / 2;
-    const boardRight = board.x + board.width / 2;
-    const boardTop = board.y - board.height / 2;
-    const boardBottom = board.y + board.height / 2;
-
-    const closestX = clamp(ball.x, boardLeft, boardRight);
-    const closestY = clamp(ball.y, boardTop, boardBottom);
-    
-    const dx = ball.x - closestX;
-    const dy = ball.y - closestY;
+    const boardRadius = board.width / 2;
+    const dx = ball.x - board.x;
+    const dy = ball.y - board.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
+    const collisionRadius = boardRadius + ball.radius;
 
-    if (distance < ball.radius && ball.vy > 0) {
-      const angle = board.angle * 0.8;
-      const normalX = Math.sin(angle);
-      const normalY = -Math.cos(angle);
-      
-      const dotProduct = ball.vx * normalX + ball.vy * normalY;
-      const restitution = 0.85;
-      
-      ball.vx = ball.vx - 2 * dotProduct * normalX * restitution;
-      ball.vy = ball.vy - 2 * dotProduct * normalY * restitution;
-      
-      ball.vx += Math.sin(angle) * 50;
-      ball.y = closestY - ball.radius;
+    if (distance < collisionRadius && distance > 0) {
+      const nx = dx / distance;
+      const ny = dy / distance;
+
+      const tangentX = -ny;
+      const tangentY = nx;
+
+      const rotationSpeed = board.angle * 180;
+
+      const relativeVx = ball.vx + rotationSpeed * tangentX;
+      const relativeVy = ball.vy + rotationSpeed * tangentY;
+
+      const dotProduct = relativeVx * nx + relativeVy * ny;
+
+      if (dotProduct < 0) {
+        const restitution = 0.9;
+        ball.vx = (relativeVx - 2 * dotProduct * nx) * restitution + rotationSpeed * tangentX * 1.2;
+        ball.vy = (relativeVy - 2 * dotProduct * ny) * restitution + rotationSpeed * tangentY * 1.2;
+
+        const overlap = collisionRadius - distance;
+        ball.x += nx * overlap * 1.1;
+        ball.y += ny * overlap * 1.1;
+        
+        ball.vz += Math.abs(board.angle) * 50 + 20;
+      }
     }
 
     return ball;
   }, []);
 
   const checkCollisionWithBridge = useCallback((ball: Ball, bridgeData: typeof bridge): Ball => {
-    const bridgeLeft = bridgeData.x - bridgeData.width / 2;
-    const bridgeRight = bridgeData.x + bridgeData.width / 2;
-    const bridgeTop = bridgeData.y - bridgeData.height / 2;
+    const bridgeStartX = bridgeData.x - bridgeData.width / 2;
+    const bridgeEndX = bridgeData.x + bridgeData.width / 2;
+    const bridgeLength = bridgeEndX - bridgeStartX;
     
-    if (ball.z > bridgeData.z - 30 && ball.z < bridgeData.z + 50) {
-      if (ball.x > bridgeLeft && ball.x < bridgeRight) {
-        if (ball.y > bridgeTop - ball.radius && ball.y < bridgeTop + 20 && ball.vy > 0) {
+    if (ball.x < bridgeStartX - ball.radius * 2 || ball.x > bridgeEndX + ball.radius * 2) {
+      return ball;
+    }
+
+    const progress = (ball.x - bridgeStartX) / bridgeLength;
+    const clampedProgress = clamp(progress, 0, 1);
+    
+    const bridgeYAtX = bridgeData.y - clampedProgress * 20;
+    const bridgeZAtX = bridgeData.z + clampedProgress * 50;
+    
+    const zDistance = Math.abs(ball.z - bridgeZAtX);
+    
+    if (zDistance < 80) {
+      const bridgeTop = bridgeYAtX - bridgeData.height / 2;
+      
+      if (ball.y > bridgeTop - ball.radius * 1.5 && ball.y < bridgeTop + bridgeData.height + 20) {
+        if (ball.vy > 0 || Math.abs(ball.y - bridgeTop) < ball.radius) {
           ball.y = bridgeTop - ball.radius;
-          ball.vy *= -0.6;
-          ball.vx *= 0.98;
+          ball.vy = Math.min(ball.vy * -0.2, 50);
+          ball.vx = Math.max(ball.vx, 40);
+          
+          if (ball.vx < 120) {
+            ball.vx += 15;
+          }
+          
+          ball.vx *= 0.99;
+          ball.z = bridgeZAtX + 10;
+        }
+      }
+      
+      if (Math.abs(ball.y - bridgeTop) < ball.radius * 2) {
+        ball.vz *= 0.9;
+        
+        if (ball.x < bridgeStartX + 30 && ball.vx < 0) {
+          ball.vx = Math.abs(ball.vx) * 0.6 + 40;
         }
       }
     }
@@ -278,15 +323,26 @@ export const PinballGame: React.FC<PinballGameProps> = ({
   }, []);
 
   const checkHoleCollision = useCallback((ball: Ball, holeData: typeof hole): boolean => {
-    if (ball.z > holeData.z - 20 && ball.z < holeData.z + 40) {
-      const dx = ball.x - holeData.x;
-      const dy = ball.y - holeData.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      
-      if (distance < holeData.radius * 0.7) {
+    const dx = ball.x - holeData.x;
+    const dy = ball.y - holeData.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    const dz = Math.abs(ball.z - holeData.z);
+    
+    if (dz < 80 && distance < holeData.radius + ball.radius) {
+      if (ball.y > holeData.y - holeData.radius * 1.5) {
         return true;
       }
     }
+    
+    if (dz < 50 && distance < holeData.radius * 0.8) {
+      return true;
+    }
+    
+    if (distance < holeData.radius * 0.6) {
+      return true;
+    }
+    
     return false;
   }, []);
 
@@ -341,102 +397,187 @@ export const PinballGame: React.FC<PinballGameProps> = ({
     const { x, y } = project3D({ x: board.x, y: board.y, z: 30 }, w, h);
     const scale = project3D({ x: board.x, y: board.y, z: 30 }, w, h).scale;
     
-    const width = board.width * scale;
-    const height = board.height * scale;
+    const radius = (board.width / 2) * scale;
     const angle = board.angle;
 
     ctx.save();
     ctx.translate(x, y);
-    ctx.rotate(angle);
 
-    const shadowGradient = ctx.createLinearGradient(0, height / 2, 0, height);
-    shadowGradient.addColorStop(0, 'rgba(0, 0, 0, 0.4)');
+    const shadowGradient = ctx.createRadialGradient(0, radius * 0.6, 0, 0, radius * 0.6, radius * 1.2);
+    shadowGradient.addColorStop(0, 'rgba(0, 0, 0, 0.5)');
     shadowGradient.addColorStop(1, 'transparent');
     ctx.fillStyle = shadowGradient;
     ctx.beginPath();
-    ctx.ellipse(0, height * 0.8, width * 0.48, height * 0.4, 0, 0, Math.PI);
+    ctx.ellipse(0, radius * 0.5, radius * 1.1, radius * 0.5, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    const boardGradient = ctx.createLinearGradient(0, -height / 2, 0, height / 2);
-    boardGradient.addColorStop(0, '#6c5ce7');
-    boardGradient.addColorStop(0.3, '#a29bfe');
-    boardGradient.addColorStop(0.5, '#74b9ff');
-    boardGradient.addColorStop(0.7, '#a29bfe');
-    boardGradient.addColorStop(1, '#6c5ce7');
+    ctx.save();
+    ctx.rotate(angle * 0.3);
+
+    const boardGradient = ctx.createRadialGradient(-radius * 0.2, -radius * 0.2, 0, 0, 0, radius);
+    boardGradient.addColorStop(0, '#a29bfe');
+    boardGradient.addColorStop(0.3, '#74b9ff');
+    boardGradient.addColorStop(0.6, '#6c5ce7');
+    boardGradient.addColorStop(1, '#4834d4');
 
     ctx.fillStyle = boardGradient;
     ctx.beginPath();
-    ctx.ellipse(0, 0, width / 2, height / 2, 0, 0, Math.PI * 2);
+    ctx.arc(0, 0, radius, 0, Math.PI * 2);
     ctx.fill();
 
-    const highlightGradient = ctx.createRadialGradient(0, -height * 0.2, 0, 0, -height * 0.2, width * 0.4);
-    highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+    const ringGradient = ctx.createRadialGradient(0, 0, radius * 0.85, 0, 0, radius);
+    ringGradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
+    ringGradient.addColorStop(0.5, '#6c5ce7');
+    ringGradient.addColorStop(1, '#4834d4');
+    ctx.fillStyle = ringGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius - 4, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.save();
+    ctx.rotate(angle);
+    const arrowGradient = ctx.createLinearGradient(0, -radius * 0.6, 0, radius * 0.6);
+    arrowGradient.addColorStop(0, '#ffeaa7');
+    arrowGradient.addColorStop(1, '#fdcb6e');
+    ctx.fillStyle = arrowGradient;
+    
+    ctx.beginPath();
+    ctx.moveTo(0, -radius * 0.7);
+    ctx.lineTo(radius * 0.15, -radius * 0.45);
+    ctx.lineTo(-radius * 0.15, -radius * 0.45);
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.moveTo(0, radius * 0.7);
+    ctx.lineTo(radius * 0.15, radius * 0.45);
+    ctx.lineTo(-radius * 0.15, radius * 0.45);
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.strokeStyle = '#ffeaa7';
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, -radius * 0.45);
+    ctx.lineTo(0, radius * 0.45);
+    ctx.stroke();
+    ctx.restore();
+
+    const highlightGradient = ctx.createRadialGradient(-radius * 0.3, -radius * 0.3, 0, -radius * 0.3, -radius * 0.3, radius * 0.6);
+    highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
+    highlightGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.15)');
     highlightGradient.addColorStop(1, 'transparent');
     ctx.fillStyle = highlightGradient;
     ctx.beginPath();
-    ctx.ellipse(0, -height * 0.15, width * 0.4, height * 0.3, 0, 0, Math.PI * 2);
+    ctx.arc(-radius * 0.25, -radius * 0.25, radius * 0.5, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.shadowColor = '#a29bfe';
+    ctx.shadowBlur = 25;
+    ctx.strokeStyle = 'rgba(162, 155, 254, 0.6)';
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.ellipse(0, 0, width / 2 - 2, height / 2 - 2, 0, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.shadowColor = '#a29bfe';
-    ctx.shadowBlur = 20;
-    ctx.strokeStyle = 'rgba(162, 155, 254, 0.8)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.ellipse(0, 0, width / 2 + 5, height / 2 + 5, 0, 0, Math.PI * 2);
+    ctx.arc(0, 0, radius + 8, 0, Math.PI * 2);
     ctx.stroke();
     ctx.shadowBlur = 0;
 
     ctx.restore();
+    ctx.restore();
   }, [project3D]);
 
   const drawBridge = useCallback((ctx: CanvasRenderingContext2D, bridgeData: typeof bridge, w: number, h: number) => {
-    const segments = 10;
+    const segments = 12;
     
     for (let i = 0; i < segments; i++) {
-      const zOffset = (i / segments) * 60 - 30 + bridgeData.z;
-      const pos = project3D({ x: bridgeData.x, y: bridgeData.y, z: zOffset }, w, h);
+      const t = i / segments;
+      const zOffset = t * 50 + bridgeData.z;
+      const yOffset = -t * 15;
+      const xOffset = t * 10;
+      
+      const pos = project3D({ x: bridgeData.x + xOffset, y: bridgeData.y + yOffset, z: zOffset }, w, h);
       const scale = pos.scale;
-      const width = bridgeData.width * scale;
+      const width = bridgeData.width * scale * (0.95 + t * 0.1);
       const height = bridgeData.height * scale;
 
       const plankGradient = ctx.createLinearGradient(0, -height / 2, 0, height / 2);
-      plankGradient.addColorStop(0, '#8b4513');
-      plankGradient.addColorStop(0.3, '#cd853f');
-      plankGradient.addColorStop(0.7, '#8b4513');
+      plankGradient.addColorStop(0, '#8b5a2b');
+      plankGradient.addColorStop(0.2, '#cd853f');
+      plankGradient.addColorStop(0.5, '#daa520');
+      plankGradient.addColorStop(0.8, '#8b5a2b');
       plankGradient.addColorStop(1, '#654321');
 
       ctx.fillStyle = plankGradient;
       ctx.fillRect(pos.x - width / 2, pos.y - height / 2, width, height);
 
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)';
       ctx.lineWidth = 1;
-      for (let j = 0; j < 5; j++) {
-        const plankX = pos.x - width / 2 + (j / 5) * width;
+      const plankCount = 8;
+      for (let j = 0; j <= plankCount; j++) {
+        const plankX = pos.x - width / 2 + (j / plankCount) * width;
         ctx.beginPath();
         ctx.moveTo(plankX, pos.y - height / 2);
         ctx.lineTo(plankX, pos.y + height / 2);
         ctx.stroke();
       }
 
-      const sideGradient = ctx.createLinearGradient(0, 0, 0, height * 0.5);
+      const sideGradient = ctx.createLinearGradient(0, 0, 0, height * 0.6);
       sideGradient.addColorStop(0, '#654321');
       sideGradient.addColorStop(1, '#3d2817');
       ctx.fillStyle = sideGradient;
-      ctx.fillRect(pos.x - width / 2, pos.y + height / 2, width, height * 0.5);
+      ctx.fillRect(pos.x - width / 2, pos.y + height / 2, width, height * 0.6);
+
+      ctx.fillStyle = '#2d3436';
+      ctx.fillRect(pos.x - width / 2 - 4 * scale, pos.y - height / 2 - 25 * scale, 6 * scale, 30 * scale);
+      ctx.fillRect(pos.x + width / 2 - 2 * scale, pos.y - height / 2 - 25 * scale, 6 * scale, 30 * scale);
+
+      if (t > 0.3) {
+        ctx.strokeStyle = '#b2bec3';
+        ctx.lineWidth = 2 * scale;
+        ctx.beginPath();
+        ctx.moveTo(pos.x - width / 2 - 1 * scale, pos.y - height / 2 - 25 * scale);
+        ctx.lineTo(pos.x - width / 2 - 1 * scale, pos.y - height / 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(pos.x + width / 2 - 1 * scale, pos.y - height / 2 - 25 * scale);
+        ctx.lineTo(pos.x + width / 2 - 1 * scale, pos.y - height / 2);
+        ctx.stroke();
+      }
     }
 
-    const railPos = project3D({ x: bridgeData.x, y: bridgeData.y - 15, z: bridgeData.z + 30 }, w, h);
-    const railScale = railPos.scale;
-    ctx.fillStyle = '#2d3436';
-    ctx.fillRect(railPos.x - bridgeData.width * railScale / 2, railPos.y, bridgeData.width * railScale, 8);
-    ctx.fillRect(railPos.x - bridgeData.width * railScale / 2, railPos.y - 20, 8, 28);
-    ctx.fillRect(railPos.x + bridgeData.width * railScale / 2 - 8, railPos.y - 20, 8, 28);
+    const startPos = project3D({ x: bridgeData.x - bridgeData.width / 2 + 10, y: bridgeData.y, z: bridgeData.z }, w, h);
+    const endPos = project3D({ x: bridgeData.x + bridgeData.width / 2 - 10, y: bridgeData.y - 15, z: bridgeData.z + 50 }, w, h);
+
+    const arrowGradient = ctx.createLinearGradient(startPos.x, startPos.y, endPos.x, endPos.y);
+    arrowGradient.addColorStop(0, 'rgba(46, 213, 115, 0)');
+    arrowGradient.addColorStop(0.5, 'rgba(46, 213, 115, 0.6)');
+    arrowGradient.addColorStop(1, 'rgba(46, 213, 115, 0)');
+    ctx.strokeStyle = arrowGradient;
+    ctx.lineWidth = 3;
+    ctx.setLineDash([10, 8]);
+    ctx.beginPath();
+    ctx.moveTo(startPos.x, startPos.y - 20);
+    ctx.lineTo(endPos.x, endPos.y - 20);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#2ed573';
+    const arrowSize = 8;
+    const angle = Math.atan2(endPos.y - 20 - (startPos.y - 20), endPos.x - startPos.x);
+    const midX = (startPos.x + endPos.x) / 2;
+    const midY = (startPos.y - 20 + endPos.y - 20) / 2;
+    ctx.beginPath();
+    ctx.moveTo(midX + Math.cos(angle) * arrowSize, midY + Math.sin(angle) * arrowSize);
+    ctx.lineTo(midX + Math.cos(angle + 2.5) * arrowSize, midY + Math.sin(angle + 2.5) * arrowSize);
+    ctx.lineTo(midX + Math.cos(angle - 2.5) * arrowSize, midY + Math.sin(angle - 2.5) * arrowSize);
+    ctx.closePath();
+    ctx.fill();
   }, [project3D]);
 
   const drawHole = useCallback((ctx: CanvasRenderingContext2D, holeData: typeof hole, w: number, h: number, time: number) => {
@@ -767,6 +908,18 @@ export const PinballGame: React.FC<PinballGameProps> = ({
       for (let i = scene.balls.length - 1; i >= 0; i--) {
         let ball = { ...scene.balls[i] };
         if (!ball.isActive) continue;
+
+        const holeDx = scene.hole.x - ball.x;
+        const holeDy = scene.hole.y - ball.y;
+        const holeDz = scene.hole.z - ball.z;
+        const holeDistance = Math.sqrt(holeDx * holeDx + holeDy * holeDy + holeDz * holeDz);
+
+        if (holeDistance < 180) {
+          const attractStrength = (1 - holeDistance / 180) * 120;
+          ball.vx += (holeDx / Math.max(holeDistance, 1)) * attractStrength * deltaTime;
+          ball.vy += (holeDy / Math.max(holeDistance, 1)) * attractStrength * deltaTime;
+          ball.vz += (holeDz / Math.max(holeDistance, 1)) * attractStrength * deltaTime;
+        }
 
         ball.vy += gravityRef.current * deltaTime;
         ball.vz -= 50 * deltaTime;
